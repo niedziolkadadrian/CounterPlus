@@ -28,8 +28,8 @@ public class HomeController : Controller
 
     public IActionResult Counter(string Id)
     {
-        //var idBytes = Convert.FromBase64String(HttpUtility.UrlDecode(base64id));
-        //int id = BitConverter.ToInt32(idBytes, 0);
+        var idBytes = Convert.FromBase64String(HttpUtility.UrlDecode(Id));
+        int id = BitConverter.ToInt32(idBytes, 0);
         return View(432);
     }
     
@@ -37,12 +37,7 @@ public class HomeController : Controller
     public IActionResult NewCounter()
     {
         int id = new Random().Next();
-        Console.WriteLine(id);
         string base64id = HttpUtility.UrlEncode(Convert.ToBase64String(BitConverter.GetBytes(id)));
-        Console.WriteLine(base64id);
-        var idBytes = Convert.FromBase64String(HttpUtility.UrlDecode(base64id));
-        int iddecoded = BitConverter.ToInt32(idBytes, 0);
-        Console.WriteLine(iddecoded);
         return RedirectToAction("Counter", new {id = base64id});
     }
 
