@@ -1,4 +1,7 @@
-﻿using System.Diagnostics;
+﻿using System.Buffers.Text;
+using System.Diagnostics;
+using System.Text;
+using System.Web;
 using Microsoft.AspNetCore.Mvc;
 using CounterPlus.Models;
 
@@ -23,10 +26,24 @@ public class HomeController : Controller
         return View();
     }
 
-    public IActionResult Counter(string id)
+    public IActionResult Counter(string Id)
     {
-
-        return View();
+        //var idBytes = Convert.FromBase64String(HttpUtility.UrlDecode(base64id));
+        //int id = BitConverter.ToInt32(idBytes, 0);
+        return View(432);
+    }
+    
+    //[HttpPost]
+    public IActionResult NewCounter()
+    {
+        int id = new Random().Next();
+        Console.WriteLine(id);
+        string base64id = HttpUtility.UrlEncode(Convert.ToBase64String(BitConverter.GetBytes(id)));
+        Console.WriteLine(base64id);
+        var idBytes = Convert.FromBase64String(HttpUtility.UrlDecode(base64id));
+        int iddecoded = BitConverter.ToInt32(idBytes, 0);
+        Console.WriteLine(iddecoded);
+        return RedirectToAction("Counter", new {id = base64id});
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
