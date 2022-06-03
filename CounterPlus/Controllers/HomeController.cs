@@ -21,11 +21,6 @@ public class HomeController : Controller
         return View();
     }
 
-    public IActionResult Privacy()
-    {
-        return View();
-    }
-
     public IActionResult Counter(string Id)
     {
         var idBytes = Convert.FromBase64String(HttpUtility.UrlDecode(Id));

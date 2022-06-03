@@ -1,7 +1,22 @@
+using CounterPlus;
+using CounterPlus.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<CPdbContext>();
+builder.Services.AddDbContext<CPdbContext>(options =>
+{
+    options.UseSqlite("Data Source=CounterPlus.db");
+});
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Account/SignIn";
+    options.AccessDeniedPath = "/Account/SignIn";
+});
 
 var app = builder.Build();
 
@@ -18,6 +33,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
