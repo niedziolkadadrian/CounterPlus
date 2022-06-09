@@ -17,4 +17,8 @@
       <PackageReference Include="Swashbuckle.AspNetCore" Version="6.3.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Content Include="Views\Shared\_LayoutSignedIn.cshtml.css" />
+    </ItemGroup>
+
 </Project>

@@ -17,26 +17,24 @@ public class AccountController : Controller
         _signInManager = signInManager;
     }
 
-    public IActionResult SignIn()
+    public IActionResult LogIn()
     {
         return View();
     }
 
     [HttpPost]
-    public async Task<IActionResult> SignIn(SignInModel user)
+    public async Task<IActionResult> LogIn(SignInModel user)
     {
         if (!ModelState.IsValid)
         {
             return View();
         }
-
+        
         var res = await _signInManager.PasswordSignInAsync(user.UserName, user.Password, false, false);
-        if (!res.Succeeded)
-        {
-            TempData["error_msg"] = "Nie udało się zalogować!";
-            return View(user);
-        }
-        return RedirectToAction("Index", "Counters");
+        if (res.Succeeded) return RedirectToAction("Index", "Counters");
+        
+        TempData["error_msg"] = "Nieprawidłowa nazwa użytkownika lub hasło!";
+        return View(user);
     }
 
     public IActionResult Register()
@@ -59,30 +57,39 @@ public class AccountController : Controller
         {
             foreach (var err in res.Errors)
             {
-                if (err.Code == "DuplicateUserName")
-                    ModelState.AddModelError("UserName","Nazwa użytkownika zajęta!");
-                if (err.Code == "PasswordTooShort")
-                    ModelState.AddModelError("Password", "Hasło za krótkie!");
-                if (err.Code == "PasswordRequiresDigit")
-                    ModelState.AddModelError("Password", "Hasło musi zawierać przynajmniej jedną cyfrę.");
-                if (err.Code == "PasswordRequiresLower")
-                    ModelState.AddModelError("Password", "Hasło musi zawierać przynajmniej jedną małą literę.");
-                if (err.Code == "PasswordRequiresUpper")
-                    ModelState.AddModelError("Password", "Hasło musi zawierać przynajmniej jedną dużą literę.");
-                if (err.Code == "PasswordRequiresNonAlphanumeric")
-                    ModelState.AddModelError("Password", "Hasło musi zawierać przynajmniej jeden nie alfanumeryczny znak.");
+                switch (err.Code)
+                {
+                    case "DuplicateUserName":
+                        ModelState.AddModelError("UserName","Nazwa użytkownika zajęta!");
+                        break;
+                    case "PasswordTooShort":
+                        ModelState.AddModelError("Password", "Hasło za krótkie!");
+                        break;
+                    case "PasswordRequiresDigit":
+                        ModelState.AddModelError("Password", "Hasło musi zawierać przynajmniej jedną cyfrę.");
+                        break;
+                    case "PasswordRequiresLower":
+                        ModelState.AddModelError("Password", "Hasło musi zawierać przynajmniej jedną małą literę.");
+                        break;
+                    case "PasswordRequiresUpper":
+                        ModelState.AddModelError("Password", "Hasło musi zawierać przynajmniej jedną dużą literę.");
+                        break;
+                    case "PasswordRequiresNonAlphanumeric":
+                        ModelState.AddModelError("Password", "Hasło musi zawierać przynajmniej jeden nie alfanumeryczny znak.");
+                        break;
+                }
             }
             TempData["error_msg"] = "Wystąpił błąd podczas rejestracji użytkownika!";
             return View(user);
         }
 
         TempData["msg"] = "Pomyślnie zarejestrowano!";
-        return RedirectToAction("SignIn", "Account");
+        return RedirectToAction("LogIn", "Account");
     }
 
-    public async Task<IActionResult> Logout()
+    public async Task<IActionResult> LogOut()
     {
         await _signInManager.SignOutAsync();
-        return RedirectToAction("SignIn", "Account");
+        return RedirectToAction("LogIn", "Account");
     }
 }
