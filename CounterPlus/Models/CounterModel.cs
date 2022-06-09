@@ -8,6 +8,8 @@ public class CounterModel
     public string? Name { get; set; }
     public int? Count { get; set; }
     public DateTime? CreatedAt { get; set; }
+
+    public ICollection<SubCounterModel> SubCounters { get; set; } = new List<SubCounterModel>();
     
-    public ICollection<SubCounterModel>? SubCounters { get; set; }
+    public User? User { get; set; }
 }

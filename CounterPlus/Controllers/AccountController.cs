@@ -19,12 +19,20 @@ public class AccountController : Controller
 
     public IActionResult LogIn()
     {
+        if (User.Identity is {IsAuthenticated: true})
+        {
+            return RedirectToAction("Index", "Counters");
+        }
         return View();
     }
 
     [HttpPost]
     public async Task<IActionResult> LogIn(SignInModel user)
     {
+        if (User.Identity is {IsAuthenticated: true})
+        {
+            return RedirectToAction("Index", "Counters");
+        }
         if (!ModelState.IsValid)
         {
             return View();
@@ -39,12 +47,20 @@ public class AccountController : Controller
 
     public IActionResult Register()
     {
+        if (User.Identity is {IsAuthenticated: true})
+        {
+            return RedirectToAction("Index", "Counters");
+        }
         return View();
     }
     
     [HttpPost]
     public async Task<IActionResult> Register(RegisterModel user)
     {
+        if (User.Identity is {IsAuthenticated: true})
+        {
+            return RedirectToAction("Index", "Counters");
+        }
         if (!ModelState.IsValid) return View(user);
         
         var newUser = new User

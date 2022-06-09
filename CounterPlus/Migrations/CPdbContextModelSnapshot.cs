@@ -32,12 +32,12 @@ namespace CounterPlus.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("UserId")
+                    b.Property<string>("OwnerId")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("OwnerId");
 
                     b.ToTable("Counters");
                 });
@@ -258,9 +258,11 @@ namespace CounterPlus.Migrations
 
             modelBuilder.Entity("CounterPlus.Models.CounterModel", b =>
                 {
-                    b.HasOne("CounterPlus.Models.User", null)
+                    b.HasOne("CounterPlus.Models.User", "Owner")
                         .WithMany("Counters")
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("OwnerId");
+
+                    b.Navigation("Owner");
                 });
 
             modelBuilder.Entity("CounterPlus.Models.SubCounterModel", b =>

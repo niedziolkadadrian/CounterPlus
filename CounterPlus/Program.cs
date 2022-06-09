@@ -14,8 +14,8 @@ builder.Services.AddDbContext<CPdbContext>(options =>
 });
 builder.Services.ConfigureApplicationCookie(options =>
 {
-    options.LoginPath = "/Account/SignIn";
-    options.AccessDeniedPath = "/Account/SignIn";
+    options.LoginPath = "/Account/LogIn";
+    options.AccessDeniedPath = "/Account/LogIn";
 });
 
 var app = builder.Build();

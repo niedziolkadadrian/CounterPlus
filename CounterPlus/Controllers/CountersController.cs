@@ -1,86 +1,117 @@
 ﻿using CounterPlus.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CounterPlus.Controllers
 {
     public class CountersController : Controller
     {
+        private readonly CPdbContext _db;
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
+
+        public CountersController(CPdbContext db, UserManager<User> userManager, SignInManager<User> signInManager)
+        {
+            _db = db;
+            _userManager = userManager;
+            _signInManager = signInManager;
+        }
         // GET: CountersController
         [Authorize]
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
-            Console.WriteLine(User.Identity?.Name);
-            var m = new List<CounterModel>();
-            return View(m);
+            var u = await _userManager.GetUserAsync(User);
+            if (u == null) return View(new List<CounterModel>());
+            
+            await _db.Counters?.Where(m => m.User == u).LoadAsync()!;
+            return View(u.Counters);
         }
 
-        // GET: CountersController/Counter/5
+        // GET: Counters/Counter/[id]
         [Authorize]
         public ActionResult Counter(int id)
         {
             return View();
         }
         
-        // GET: CountersController/Create
+        // GET: Counters/Create
         [Authorize]
         public ActionResult Create()
         {
             return View();
         }
 
-        // POST: CountersController/Create
+        // POST: Counters/Create
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public async Task<ActionResult> Create(CounterModel counter)
         {
+            counter.Count = 0;
+            counter.CreatedAt = DateTime.Now;
+            var u = await _userManager.GetUserAsync(User);
+            if (u == null) return View(counter);
+            if (!ModelState.IsValid) return View(counter);
             try
             {
-                return RedirectToAction(nameof(Index));
+                u.Counters.Add(counter);
+                await _db.SaveChangesAsync();
             }
             catch
             {
-                return View();
+                TempData["err_msg"] = "Wystąpił błąd podczas dodawanie do bazy!";
+                return View(counter);
             }
+            return RedirectToAction("Index", "Counters");
         }
 
-        // GET: CountersController/Edit/5
+        // GET: Counters/Edit/[id]
         [Authorize]
-        public ActionResult Edit(int id)
+        public async Task<ActionResult> Edit(int id)
         {
-            return View();
+            var u = await _userManager.GetUserAsync(User);
+            if (u == null) return RedirectToAction("Index", "Counters");
+
+            var c = _db.Counters?.Where(m => m.User == u && m.Id == id).FirstOrDefault();
+            if(c == null) return RedirectToAction("Index", "Counters");
+            return View(c);
+            
         }
 
-        // POST: CountersController/Edit/5
+        // POST: Counters/Edit
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public async Task<ActionResult> Edit([Bind("Id, Name")]CounterModel counter)
         {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            if (!ModelState.IsValid) return View(counter);
+            
+            var u = await _userManager.GetUserAsync(User);
+            if (u == null) return RedirectToAction("Index", "Counters");
+
+            var c = _db.Counters?.Where(m => m.User == u && m.Id == counter.Id).FirstOrDefault();
+            if(c == null) return RedirectToAction("Index", "Counters");
+
+            c.Name = counter.Name;
+            _db.Counters?.Update(c);
+            await _db.SaveChangesAsync();
+            return RedirectToAction("Index", "Counters");
         }
 
-        // GET: CountersController/Delete/5
+        // GET: Counters/Delete/[id]
         [Authorize]
         public ActionResult Delete(int id)
         {
             return View();
         }
 
-        // POST: CountersController/Delete/5
+        // POST: CountersController/Delete
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public ActionResult Delete(CounterModel counter)
         {
             try
             {
