@@ -31,9 +31,15 @@ namespace CounterPlus.Controllers
 
         // GET: Counters/Counter/[id]
         [Authorize]
-        public ActionResult Counter(int id)
+        public async Task<ActionResult> Counter(int id)
         {
-            return View();
+            var u = await _userManager.GetUserAsync(User);
+            if (u == null) return RedirectToAction("Index", "Counters");
+
+            var c = _db.Counters?.Include(m => m.SubCounters).FirstOrDefault(m => m.User == u && m.Id == id);
+            if(c == null) return RedirectToAction("Index", "Counters");
+            
+            return View(c);
         }
         
         // GET: Counters/Create
@@ -42,7 +48,6 @@ namespace CounterPlus.Controllers
         {
             return View();
         }
-
         // POST: Counters/Create
         [HttpPost]
         [Authorize]
@@ -74,12 +79,10 @@ namespace CounterPlus.Controllers
             var u = await _userManager.GetUserAsync(User);
             if (u == null) return RedirectToAction("Index", "Counters");
 
-            var c = _db.Counters?.Where(m => m.User == u && m.Id == id).FirstOrDefault();
+            var c = _db.Counters?.FirstOrDefault(m => m.User == u && m.Id == id);
             if(c == null) return RedirectToAction("Index", "Counters");
             return View(c);
-            
         }
-
         // POST: Counters/Edit
         [HttpPost]
         [Authorize]
@@ -91,7 +94,7 @@ namespace CounterPlus.Controllers
             var u = await _userManager.GetUserAsync(User);
             if (u == null) return RedirectToAction("Index", "Counters");
 
-            var c = _db.Counters?.Where(m => m.User == u && m.Id == counter.Id).FirstOrDefault();
+            var c = _db.Counters?.FirstOrDefault(m => m.User == u && m.Id == counter.Id);
             if(c == null) return RedirectToAction("Index", "Counters");
 
             c.Name = counter.Name;
@@ -106,21 +109,124 @@ namespace CounterPlus.Controllers
         {
             return View();
         }
-
         // POST: CountersController/Delete
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
         public ActionResult Delete(CounterModel counter)
         {
+            return View(counter);
+        }
+        
+        [Authorize]
+        public ActionResult CreateSubcounter(int counterId)
+        {
+            TempData["CounterId"] = counterId;
+            return View();
+        }
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> CreateSubcounter(int counterId, SubCounterModel subCounter)
+        {
+            subCounter.Count = 0;
+            if (!ModelState.IsValid) return View(subCounter);
+
+            var u = await _userManager.GetUserAsync(User);
+            if (u == null) return View(subCounter);
+            
+            var c = _db.Counters?.Where(m => m.User == u && m.Id == counterId).FirstOrDefault();
+            if(c == null) return RedirectToAction("Index", "Counters");
+            
             try
             {
-                return RedirectToAction(nameof(Index));
+                c.SubCounters.Add(subCounter);
+                await _db.SaveChangesAsync();
             }
             catch
             {
-                return View();
+                TempData["err_msg"] = "Wystąpił błąd podczas dodawanie do bazy!";
+                TempData["CounterId"] = counterId;
+                return View(subCounter);
             }
+            
+            return RedirectToAction("Counter", "Counters", new{id=counterId});
+        }
+        
+        // GET: Counters/EditSubcounter/[id]
+        [Authorize]
+        public async Task<ActionResult> EditSubcounter(int counterId, int id)
+        {
+            Console.WriteLine(counterId+"+++++++++++");
+            var u = await _userManager.GetUserAsync(User);
+            if (u == null) return RedirectToAction("Counter", "Counters", new{id=counterId});
+
+            var c = _db.Counters?.FirstOrDefault(m => m.User == u && m.Id == counterId);
+            if (c == null) return RedirectToAction("Counter", "Counters", new {id = counterId});
+
+            var s = _db.SubCounters?.FirstOrDefault(m => m.Counter == c && m.Id == id);
+            if (s == null) return RedirectToAction("Counter", "Counters", new {id = counterId});
+
+            TempData["CounterId"] = counterId;
+            return View(s);
+        }
+        // POST: Counters/EditSubcounter
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> EditSubcounter(int counterId, [Bind("Id, Name")]SubCounterModel subCounter)
+        {
+            Console.WriteLine(counterId+"!!!!!!!!!!!!!!!!!!!");
+            if (!ModelState.IsValid)
+            {
+                TempData["CounterId"] = counterId;
+                return View(subCounter);
+            }
+            var u = await _userManager.GetUserAsync(User);
+            if (u == null)
+            {
+                Console.WriteLine("Tutaj?");
+                return RedirectToAction("Counter", "Counters", new{id=counterId});
+            }
+
+            var c = _db.Counters?.FirstOrDefault(m => m.User == u && m.Id == counterId);
+            if (c == null)
+            {
+                Console.WriteLine("A moze tu?");
+                return RedirectToAction("Counter", "Counters", new {id = counterId});
+            }
+
+            var s = _db.SubCounters?.FirstOrDefault(m => m.Counter == c && m.Id == subCounter.Id);
+            if (s == null)
+            {
+                Console.WriteLine("Nie to tu!");
+                return RedirectToAction("Counter", "Counters", new {id = counterId});
+            }
+
+            s.Name = subCounter.Name;
+            _db.SubCounters?.Update(s);
+            await _db.SaveChangesAsync();
+            return RedirectToAction("Counter", "Counters", new {id = counterId});
+        }
+        
+        [Authorize]
+        public ActionResult DeleteSubcounter(int id)
+        {
+            return View();
+        }
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public ActionResult DeleteSubcounter(SubCounterModel subCounter)
+        {
+
+            return View();
+        }
+        
+        [Authorize]
+        public ActionResult Widget(int id)
+        {
+            return View();
         }
     }
 }

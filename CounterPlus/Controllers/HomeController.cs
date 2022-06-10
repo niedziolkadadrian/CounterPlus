@@ -20,22 +20,7 @@ public class HomeController : Controller
     {
         return View();
     }
-
-    public IActionResult Counter(string Id)
-    {
-        var idBytes = Convert.FromBase64String(HttpUtility.UrlDecode(Id));
-        int id = BitConverter.ToInt32(idBytes, 0);
-        return View(id);
-    }
     
-    //[HttpPost]
-    public IActionResult NewCounter()
-    {
-        int id = new Random().Next();
-        string base64id = HttpUtility.UrlEncode(Convert.ToBase64String(BitConverter.GetBytes(id)));
-        return RedirectToAction("Counter", new {Id = base64id});
-    }
-
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

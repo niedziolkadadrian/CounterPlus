@@ -3,6 +3,7 @@ using System;
 using CounterPlus;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CounterPlus.Migrations
 {
     [DbContext(typeof(CPdbContext))]
-    partial class CPdbContextModelSnapshot : ModelSnapshot
+    [Migration("20220609094320_Aktualizacja")]
+    partial class Aktualizacja
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.5");
@@ -32,12 +34,12 @@ namespace CounterPlus.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("UserId")
+                    b.Property<string>("OwnerId")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("OwnerId");
 
                     b.ToTable("Counters");
                 });
@@ -46,9 +48,6 @@ namespace CounterPlus.Migrations
                 {
                     b.Property<int?>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("Active")
                         .HasColumnType("INTEGER");
 
                     b.Property<int?>("Count")
@@ -261,11 +260,11 @@ namespace CounterPlus.Migrations
 
             modelBuilder.Entity("CounterPlus.Models.CounterModel", b =>
                 {
-                    b.HasOne("CounterPlus.Models.User", "User")
+                    b.HasOne("CounterPlus.Models.User", "Owner")
                         .WithMany("Counters")
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("OwnerId");
 
-                    b.Navigation("User");
+                    b.Navigation("Owner");
                 });
 
             modelBuilder.Entity("CounterPlus.Models.SubCounterModel", b =>

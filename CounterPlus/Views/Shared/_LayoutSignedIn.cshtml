@@ -1,4 +1,7 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<User> _userManager
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8"/>
@@ -26,6 +29,14 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link text-dark" asp-area="" asp-controller="Counters" asp-action="Index">Moje liczniki</a>
+                    </li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="nav-item">
+                        <p class="nav-link text-dark m-0">Użytkownik: @_userManager.GetUserName(User)</p>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" asp-action="LogOut" asp-controller="Account">Wyloguj</a>
                     </li>
                 </ul>
             </div>

@@ -3,6 +3,7 @@ using System;
 using CounterPlus;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CounterPlus.Migrations
 {
     [DbContext(typeof(CPdbContext))]
-    partial class CPdbContextModelSnapshot : ModelSnapshot
+    [Migration("20220610095307_Subcounter-status")]
+    partial class Subcounterstatus
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.5");
