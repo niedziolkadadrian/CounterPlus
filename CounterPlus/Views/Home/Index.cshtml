@@ -8,4 +8,8 @@
 <div class="text-center">
     <h1>CounterPlus</h1>
     <h2>Strona główna</h2>
+    @if (!_signInManager.IsSignedIn(User))
+    {
+        <h3>Zaloguj się aby działać!</h3>
+    }
 </div>
