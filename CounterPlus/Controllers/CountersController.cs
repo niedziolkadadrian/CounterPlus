@@ -247,7 +247,10 @@ namespace CounterPlus.Controllers
             await _db.SaveChangesAsync();
             return RedirectToAction("Counter", "Counters", new {id = counterId});
         }
-
+        
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> ChangeState(int counterId, int subCounterId)
         {
             var u = await _userManager.GetUserAsync(User);
@@ -267,10 +270,44 @@ namespace CounterPlus.Controllers
             return RedirectToAction("Counter", "Counters", new {id = counterId});
         }
 
+        [HttpPost]
         [Authorize]
-        public ActionResult Widget(int id)
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ChangeCounterValue(int counterId, int value)
         {
-            return View();
+            var u = await _userManager.GetUserAsync(User);
+            if (u == null) return RedirectToAction("Counter", "Counters", new {id = counterId});
+
+            var c = _db.Counters?.FirstOrDefault(m => m.User == u && m.Id == counterId);
+            if (c == null) return RedirectToAction("Counter", "Counters", new {id = counterId});
+            c.Count+=value;
+            
+            var subCounters = _db.SubCounters?.Where(m => m.Counter == c).ToList();
+            if (subCounters != null)
+            {
+                foreach (var s in subCounters.Where(s => s.Active))
+                {
+                    s.Count+=value;
+                    _db.SubCounters?.Update(s);
+                }
+            }
+            _db.Counters?.Update(c);
+            await _db.SaveChangesAsync();
+            return RedirectToAction("Counter", "Counters", new {id = counterId});
+        }
+
+        [Authorize]
+        public async Task<ActionResult> Widget(int id)
+        {
+            var u = await _userManager.GetUserAsync(User);
+            if (u == null) return RedirectToAction("Counter", "Counters", new {id = id});
+
+            var c = _db.Counters?.FirstOrDefault(m => m.User == u && m.Id == id);
+            if (c == null) return RedirectToAction("Counter", "Counters", new {id = id});
+
+            await _db.SubCounters?.Where(m=> m.Counter == c && m.Active == true).LoadAsync()!;
+            
+            return View(c);
         }
     }
 }

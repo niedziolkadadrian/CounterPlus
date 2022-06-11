@@ -4,4 +4,15 @@
     ViewData["Title"] = "Widget";
 }
 
-<h2>Widget</h2>
+<table>
+    <tr><td><h3 style="margin: 0">@Model.Name</h3></td></tr>
+    <tr><td><h4 style="margin: 0">@Model.Count</h4></td></tr>
+@{
+    foreach (var s in Model.SubCounters)
+    {
+        <tr><td><hr/></td></tr>
+        <tr><td class="align-content-center"><p>@s.Name</p></td></tr>
+        <tr><td class="align-content-center"><p>@s.Count</p></td></tr>
+    }
+}
+</table>

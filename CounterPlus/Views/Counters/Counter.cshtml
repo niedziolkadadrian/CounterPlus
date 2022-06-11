@@ -28,6 +28,17 @@
         </dd>
     </dl>
     <h4><a href="@Url.Action("Widget", "Counters", new {id = Model.Id})">Widget</a></h4>
+    <form asp-action="ChangeCounterValue">
+        @Html.Hidden("counterId", Model.Id)
+        @Html.Hidden("value", -1)
+        <button type="submit" class="btn btn-dark m-2">(-) Zmniejsz</button>
+    </form>
+    <form asp-action="ChangeCounterValue">
+        @Html.Hidden("counterId", Model.Id)
+        @Html.Hidden("value", 1)
+        <button type="submit" class="btn btn-dark m-2">(+) Zwiększ</button>
+    </form>
+    <hr/>
     <h3>Podliczniki</h3>
     <p>
         <a asp-action="CreateSubcounter" asp-route-counterID="@Model.Id">Dodaj nowy</a>
@@ -63,8 +74,8 @@
                     @Html.DisplayFor(modelItem => item.Active)
                 </td>
                 <td>
-                    @Html.ActionLink("Edit", "EditSubcounter", new { id=item.Id, counterId = Model.Id }) |
-                    @Html.ActionLink("Delete", "DeleteSubcounter", new { item.Id, counterId = Model.Id })
+                    @Html.ActionLink("Edytuj", "EditSubcounter", new { id=item.Id, counterId = Model.Id }) |
+                    @Html.ActionLink("Usuń", "DeleteSubcounter", new { item.Id, counterId = Model.Id })
                 </td>
                 <td>
                     <form asp-action="ChangeState">
