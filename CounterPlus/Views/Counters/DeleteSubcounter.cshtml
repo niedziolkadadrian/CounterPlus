@@ -1,4 +1,4 @@
-﻿@model dynamic
+﻿@model SubCounterModel
 
 @{
     ViewData["Title"] = "Usuwanie podlicznia";
@@ -6,3 +6,28 @@
 }
 
 <h2>Usuwanie podlicznika</h2>
+
+<h3>Czy na pewno to usunąć?</h3>
+<div>
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Count)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Count)
+        </dd>
+    </dl>
+    
+    <form asp-action="DeleteSubcounter">
+        @Html.Hidden("counterId", TempData["CounterId"])
+        <div class="visually-hidden">@Html.EditorForModel(Model)</div>
+        <input type="submit" value="Usuń" class="btn btn-danger"/> |
+        <a asp-action="Counter" asp-route-id="@TempData["CounterId"]">Powrót do licznika</a>
+    </form>
+</div>

@@ -31,7 +31,8 @@
     </dl>
     
     <form asp-action="Delete">
-        <input type="submit" value="Usuń" class="btn btn-danger" /> |
+        <div class="visually-hidden">@Html.EditorForModel(Model)</div>
+        <input type="submit" value="Usuń" class="btn btn-danger"/> |
         <a asp-action="Index">Powrót do listy</a>
     </form>
 </div>

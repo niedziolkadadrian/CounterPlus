@@ -1,4 +1,5 @@
-﻿using CounterPlus.Models;
+﻿using System.Linq;
+using CounterPlus.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -105,17 +106,35 @@ namespace CounterPlus.Controllers
 
         // GET: Counters/Delete/[id]
         [Authorize]
-        public ActionResult Delete(int id)
+        public async Task<ActionResult> Delete(int id)
         {
-            return View();
+            var u = await _userManager.GetUserAsync(User);
+            if (u == null) return RedirectToAction("Index", "Counters");
+
+            var c = _db.Counters?.FirstOrDefault(m => m.User == u && m.Id == id);
+            if(c == null) return RedirectToAction("Index", "Counters");
+            
+            return View(c);
         }
         // POST: CountersController/Delete
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(CounterModel counter)
+        public async Task<ActionResult> Delete(CounterModel counter)
         {
-            return View(counter);
+            var u = await _userManager.GetUserAsync(User);
+            if (u == null) return RedirectToAction("Index", "Counters");
+
+            var c = _db.Counters?.FirstOrDefault(m => m.User == u && m.Id == counter.Id);
+            if(c == null) return RedirectToAction("Index", "Counters");
+
+            var subCounters = _db.SubCounters?.Where(m => m.Counter == c).ToList();
+
+            if (subCounters != null) _db.SubCounters?.RemoveRange(subCounters);
+            _db.Counters?.Remove(c);
+            await _db.SaveChangesAsync();
+
+            return RedirectToAction("Index", "Counters");
         }
         
         [Authorize]
@@ -135,7 +154,7 @@ namespace CounterPlus.Controllers
             var u = await _userManager.GetUserAsync(User);
             if (u == null) return View(subCounter);
             
-            var c = _db.Counters?.Where(m => m.User == u && m.Id == counterId).FirstOrDefault();
+            var c = _db.Counters?.FirstOrDefault(m => m.User == u && m.Id == counterId);
             if(c == null) return RedirectToAction("Index", "Counters");
             
             try
@@ -157,7 +176,6 @@ namespace CounterPlus.Controllers
         [Authorize]
         public async Task<ActionResult> EditSubcounter(int counterId, int id)
         {
-            Console.WriteLine(counterId+"+++++++++++");
             var u = await _userManager.GetUserAsync(User);
             if (u == null) return RedirectToAction("Counter", "Counters", new{id=counterId});
 
@@ -176,33 +194,20 @@ namespace CounterPlus.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> EditSubcounter(int counterId, [Bind("Id, Name")]SubCounterModel subCounter)
         {
-            Console.WriteLine(counterId+"!!!!!!!!!!!!!!!!!!!");
             if (!ModelState.IsValid)
             {
                 TempData["CounterId"] = counterId;
                 return View(subCounter);
             }
             var u = await _userManager.GetUserAsync(User);
-            if (u == null)
-            {
-                Console.WriteLine("Tutaj?");
-                return RedirectToAction("Counter", "Counters", new{id=counterId});
-            }
+            if (u == null) return RedirectToAction("Counter", "Counters", new{id=counterId});
 
             var c = _db.Counters?.FirstOrDefault(m => m.User == u && m.Id == counterId);
-            if (c == null)
-            {
-                Console.WriteLine("A moze tu?");
-                return RedirectToAction("Counter", "Counters", new {id = counterId});
-            }
-
+            if (c == null) return RedirectToAction("Counter", "Counters", new {id = counterId});
+            
             var s = _db.SubCounters?.FirstOrDefault(m => m.Counter == c && m.Id == subCounter.Id);
-            if (s == null)
-            {
-                Console.WriteLine("Nie to tu!");
-                return RedirectToAction("Counter", "Counters", new {id = counterId});
-            }
-
+            if (s == null) return RedirectToAction("Counter", "Counters", new {id = counterId});
+            
             s.Name = subCounter.Name;
             _db.SubCounters?.Update(s);
             await _db.SaveChangesAsync();
@@ -210,19 +215,58 @@ namespace CounterPlus.Controllers
         }
         
         [Authorize]
-        public ActionResult DeleteSubcounter(int id)
+        public async Task<ActionResult> DeleteSubcounter(int counterId, int id)
         {
-            return View();
+            var u = await _userManager.GetUserAsync(User);
+            if (u == null) return RedirectToAction("Counter", "Counters", new{id=counterId});
+
+            var c = _db.Counters?.FirstOrDefault(m => m.User == u && m.Id == counterId);
+            if (c == null) return RedirectToAction("Counter", "Counters", new {id = counterId});
+
+            var s = _db.SubCounters?.FirstOrDefault(m => m.Counter == c && m.Id == id);
+            if (s == null) return RedirectToAction("Counter", "Counters", new {id = counterId});
+
+            TempData["CounterId"] = counterId;
+            return View(s);
         }
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public ActionResult DeleteSubcounter(SubCounterModel subCounter)
+        public async Task<ActionResult> DeleteSubcounter(int counterId, SubCounterModel subCounter)
         {
+            var u = await _userManager.GetUserAsync(User);
+            if (u == null) return RedirectToAction("Counter", "Counters", new{id=counterId});
 
-            return View();
+            var c = _db.Counters?.FirstOrDefault(m => m.User == u && m.Id == counterId);
+            if (c == null) return RedirectToAction("Counter", "Counters", new {id = counterId});
+            
+            var s = _db.SubCounters?.FirstOrDefault(m => m.Counter == c && m.Id == subCounter.Id);
+            if (s == null) return RedirectToAction("Counter", "Counters", new {id = counterId});
+            
+            _db.SubCounters?.Remove(s);
+            await _db.SaveChangesAsync();
+            return RedirectToAction("Counter", "Counters", new {id = counterId});
         }
-        
+
+        public async Task<ActionResult> ChangeState(int counterId, int subCounterId)
+        {
+            var u = await _userManager.GetUserAsync(User);
+            if (u == null) return RedirectToAction("Counter", "Counters", new{id=counterId});
+
+            var c = _db.Counters?.FirstOrDefault(m => m.User == u && m.Id == counterId);
+            if (c == null) return RedirectToAction("Counter", "Counters", new {id = counterId});
+                
+            
+            var s = _db.SubCounters?.FirstOrDefault(m => m.Counter == c && m.Id == subCounterId);
+            if (s == null) return RedirectToAction("Counter", "Counters", new {id = counterId});
+            
+            s.Active = !s.Active;
+            Console.WriteLine(s.Active);
+            _db.SubCounters?.Update(s);
+            await _db.SaveChangesAsync();
+            return RedirectToAction("Counter", "Counters", new {id = counterId});
+        }
+
         [Authorize]
         public ActionResult Widget(int id)
         {
